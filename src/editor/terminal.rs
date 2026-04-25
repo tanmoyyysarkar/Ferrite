@@ -1,7 +1,7 @@
 use crossterm::cursor::{Hide, MoveTo, Show};
-use crossterm::{queue, Command};
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode, size};
+use crossterm::{Command, queue};
 
 use std::io::{Error, Write, stdout};
 
@@ -9,14 +9,14 @@ use core::fmt::Display;
 
 #[derive(Copy, Clone)]
 pub struct Size {
-    pub height: u16,
-    pub width: u16,
+    pub height: usize,
+    pub width: usize,
 }
 
 #[derive(Copy, Clone)]
 pub struct Position {
-    pub x: u16,
-    pub y: u16,
+    pub x: usize,
+    pub y: usize,
 }
 
 pub struct Terminal;
@@ -46,7 +46,8 @@ impl Terminal {
     }
 
     pub fn move_cursor_to(position: Position) -> Result<(), Error> {
-        Self::queue_command(MoveTo(position.x, position.y))?;
+        #[allow(clippy::as_conversions, clippy::cast_possible_truncation)]
+        Self::queue_command(MoveTo(position.x as u16, position.y as u16))?;
         Ok(())
     }
 
@@ -62,7 +63,14 @@ impl Terminal {
 
     pub fn size() -> Result<Size, Error> {
         let (width, height) = size()?;
-        Ok(Size { width, height })
+
+        #[allow(clippy::as_conversions)]
+        let height = height as usize;
+
+        #[allow(clippy::as_conversions)]
+        let width = width as usize;
+
+        Ok(Size { height, width })
     }
 
     pub fn print(string: impl Display) -> Result<(), Error> {
