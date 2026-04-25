@@ -108,6 +108,7 @@ impl Editor {
 
     fn refresh_screen(&self) -> Result<(), Error> {
         Terminal::hide_cursor()?;
+        Terminal::move_cursor_to(Position::default())?;
 
         if self.should_quit {
             Terminal::clear_screen()?;
