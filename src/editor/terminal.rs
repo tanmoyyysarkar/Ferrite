@@ -5,8 +5,6 @@ use crossterm::{Command, queue};
 
 use std::io::{Error, Write, stdout};
 
-use core::fmt::Display;
-
 #[derive(Copy, Clone)]
 pub struct Size {
     pub height: usize,
@@ -72,7 +70,7 @@ impl Terminal {
         Ok(Size { height, width })
     }
 
-    pub fn print(string: impl Display) -> Result<(), Error> {
+    pub fn print(string: &str) -> Result<(), Error> {
         Self::queue_command(Print(string))?;
         Ok(())
     }
