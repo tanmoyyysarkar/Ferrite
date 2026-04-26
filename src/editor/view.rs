@@ -8,22 +8,16 @@ mod buffer;
 use buffer::Buffer;
 
 #[derive(Default)]
-pub struct View{
+pub struct View {
     buffer: Buffer,
 }
 
 impl View {
-    pub fn render(&self) -> Result<(), Error> {
+    pub fn render_welcome_screen() -> Result<(), Error> {
         let Size { height, .. } = Terminal::size()?;
 
         for current_row in 0..height {
             Terminal::clear_line()?;
-
-            if let Some(line) = self.buffer.lines.get(current_row) {
-                Terminal::print(line)?;
-                Terminal::print("\r\n")?;
-                continue;
-            }
 
             #[allow(clippy::integer_division)]
             if current_row == height / 3 {
@@ -34,6 +28,34 @@ impl View {
             if current_row.saturating_add(1) < height {
                 Terminal::print("\r\n")?;
             }
+        }
+        Ok(())
+    }
+
+    pub fn render_buffer(&self) -> Result<(), Error> {
+        let Size { height, .. } = Terminal::size()?;
+
+        for current_row in 0..height {
+            Terminal::clear_line()?;
+
+            if let Some(line) = self.buffer.lines.get(current_row) {
+                Terminal::print(line)?;
+                Terminal::print("\r\n")?;
+            } else {
+                Self::draw_empty_rows()?;
+                if current_row.saturating_add(1) < height {
+                    Terminal::print("\r\n")?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn render(&self) -> Result<(), Error> {
+        if self.buffer.is_empty() {
+            Self::render_welcome_screen()?;
+        } else {
+            self.render_buffer()?;
         }
         Ok(())
     }
@@ -55,5 +77,11 @@ impl View {
     fn draw_empty_rows() -> Result<(), Error> {
         Terminal::print("~")?;
         Ok(())
+    }
+
+    pub fn load(&mut self, file_name: &str) {
+        if let Ok(buffer) = Buffer::load(file_name) {
+            self.buffer = buffer;
+        }
     }
 }
